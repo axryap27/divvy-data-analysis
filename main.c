@@ -38,6 +38,210 @@ struct Trip {
 };
 
 
+//
+// main()
+//
+// handles file input and program execution between all helpers
+//
 int main(){
+    char* stationsFile = readStringInput("Please enter name of stations file> ");
+    char* tripsFile = readStringInput("Please enter name of bike trips file> ");
     
+    int stationCount = 0, tripCount = 0;
+    struct Station* stations = readStations(stationsFile, &stationCount);
+    if (stations == NULL) {
+        free(stationsFile);
+        free(tripsFile);
+        return 1;
+    }
+    
+    struct Trip* trips = readTrips(tripsFile, &tripCount);
+    if (trips == NULL) {
+        freeStations(stations, stationCount);
+        free(stationsFile);
+        free(tripsFile);
+        return 1;
+    }
+    
+    processCommands(stations, stationCount, trips, tripCount);
+    
+    freeStations(stations, stationCount);
+    freeTrips(trips, tripCount);
+    free(stationsFile);
+    free(tripsFile);
+    return 0;
 }
+
+//
+// readStringInput()
+//
+// given a string, reads the file that matches with the string 
+// by dynamically allocating an array of chars. Checks to see if the pointer
+// is not a '\n' or EOF, adds said character to the array at index length.
+// Also saves the length of the array and uses length as the index to traversal via a pointer
+//
+char* readStringInput(const char* prompt) {
+    printf("%s", prompt);
+    
+    int capacity = 10;
+    char* input = malloc(capacity * sizeof(char));
+    int length = 0;
+    int c;
+    
+    // Read character by character until newline
+    while ((c = getchar()) != '\n' && c != EOF) {
+        if (length >= capacity - 1) {
+            input = doubleCharArray(input, &capacity);
+        }
+        input[length] = c;
+        length++;
+    }
+    
+    input[length] = '\0';
+    return input;
+}
+
+//
+// array helper functions
+//
+
+//
+// doubleCharArray()
+//
+// returns a pointer to a char array double the size of the inputted char array pointer 
+static char* doubleCharArray(char* array, int* capacity) {
+    *capacity *= 2;
+    return realloc(array, *capacity * sizeof(char));
+}
+
+//
+// doubleStationArray()
+//
+// doubles array of Station structs, returning pointer to new larger array
+//
+static struct Station* doubleStationArray(struct Station* array, int* capacity) {
+    *capacity *= 2;
+    return realloc(array, *capacity * sizeof(struct Station));
+}
+
+//
+// doubleTripArray()
+//
+// doubles array of Trip structs, returning pointer to new larger array
+//
+static struct Trip* doubleTripArray(struct Trip* array, int* capacity) {
+    *capacity *= 2;
+    return realloc(array, *capacity * sizeof(struct Trip));
+}
+
+
+//
+// file reading functions
+//
+
+//
+// readStations
+//
+
+//
+// readTrips
+//
+
+/////////////////////////
+
+
+//
+// processCommands()
+//
+//
+// Main command that processes user inputted commands via a while loop.
+// Manages which helpers to use when and controls overall program flow
+//
+static void processCommands(struct Station* stations, int stationCount, struct Trip* trip, int tripCount){
+    int commandCapacity = 10;
+    char* command = malloc(commandCapacity * sizeof(char));
+    
+    while (1) {
+        // Read command dynamically
+        printf("Enter command (# to stop)> ");
+        int length = 0;
+        int c;
+        
+        while ((c = getchar()) != '\n' && c != EOF) {
+            if (length >= commandCapacity - 1) {
+                command = doubleCharArray(command, &commandCapacity);
+            }
+            command[length] = c;
+            length++;
+        }
+        command[length] = '\0';
+        
+        // Process commands
+        if (strcmp(command, "#") == 0) {
+            break;
+        }
+        else if (strcmp(command, "stats") == 0) {
+            //printStats(stations, stationCount, trips, tripCount);
+        }
+        else if (strcmp(command, "durations") == 0) {
+            //printDurations(trips, tripCount);
+        }
+        else if (strcmp(command, "starting") == 0) {
+            //printStartingTimes(trips, tripCount);
+        }
+        else if (strcmp(command, "nearme") == 0) {
+            //handleNearMe(stations, stationCount, trips, tripCount);
+        }
+        else if (strcmp(command, "stations") == 0) {
+            //printAllStations(stations, stationCount, trips, tripCount);
+        }
+        else if (strcmp(command, "find") == 0) {
+            //findStations(stations, stationCount, trips, tripCount);
+        }
+    }
+    
+    free(command);
+
+}
+
+
+
+//
+// Memory management
+//
+
+//
+// freeStations
+//
+// frees the memory allocated for the stations array 
+// by traversing through the array for "count" number of times
+// and each time freeing memory for each station struct
+// and then at the end frees the array data structure it self
+//
+void freeStations(struct Station* stations, int count) {
+    for (int i = 0; i < count; i++) {
+        free(stations[i].stationID);
+        free(stations[i].name);
+    }
+    free(stations);
+}
+
+//
+// freeTrips
+//
+// frees the memory allocated for the trips array 
+// by traversing through the array for "count" number of times
+// and each time freeing memory for each trip struct
+// and then at the end frees the array data structure it self
+//
+void freeTrips(struct Trip* trips, int count) {
+    for (int i = 0; i < count; i++) {
+        free(trips[i].tripID);
+        free(trips[i].bikeID);
+        free(trips[i].startStationID);
+        free(trips[i].endStationID);
+        free(trips[i].startTime);
+    }
+    free(trips);
+}
+
