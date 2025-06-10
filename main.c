@@ -329,6 +329,42 @@ struct Trip* readTrips(char* filename, int* count) {
 }
 
 //
+// printDurations()
+//
+// categorizes trips by duration and prints counts
+//
+static void printDurations(struct Trip* trips, int tripCount) {
+    int counts[5] = {0}; // Initialize all counts to 0
+    
+    for (int i = 0; i < tripCount; i++) {
+        int duration = trips[i].duration; // duration is in seconds
+        
+        if (duration <= 1800) {                    // <= 30 minutes (1800 seconds)
+            counts[0]++;
+        } else if (duration <= 3600) {             // 30-60 minutes (3600 seconds)
+            counts[1]++;
+        } else if (duration <= 7200) {             // 1-2 hours (7200 seconds)
+            counts[2]++;
+        } else if (duration <= 18000) {            // 2-5 hours (18000 seconds)
+            counts[3]++;
+        } else {                                   // > 5 hours
+            counts[4]++;
+        }
+    }
+    
+    // Print results in the exact format required
+    printf(" trips <= 30 mins: %d\n", counts[0]);
+    printf(" trips 30..60 mins: %d\n", counts[1]);
+    printf(" trips 1-2 hrs: %d\n", counts[2]);
+    printf(" trips 2-5 hrs: %d\n", counts[3]);
+    printf(" trips > 5 hrs: %d\n", counts[4]);
+}
+
+
+/////////////////////////////////////////////////////////
+
+
+//
 // processCommands()
 //
 //
@@ -362,7 +398,7 @@ static void processCommands(struct Station* stations, int stationCount, struct T
             printStats(stations, stationCount, trips, tripCount);
         }
         else if (strcmp(command, "durations") == 0) {
-            //printDurations(trips, tripCount);
+            printDurations(trips, tripCount);
         }
         else if (strcmp(command, "starting") == 0) {
             //printStartingTimes(trips, tripCount);
