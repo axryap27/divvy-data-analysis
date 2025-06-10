@@ -11,6 +11,7 @@
 // DIVVY Data analysis
 //
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -187,13 +188,154 @@ static void freeTrips(struct Trip* trips, int count) {
 
 
 //
+// Helper function to extract the next word from a line
+//
+static char* extractWord(char** current) {
+    // Skip whitespace
+    while (**current == ' ' || **current == '\t') (*current)++;
+    
+    if (**current == '\0' || **current == '\n') {
+        return NULL;  // No more words
+    }
+    
+    char* start = *current;
+    // Find end of word
+    while (**current && **current != ' ' && **current != '\t' && **current != '\n') {
+        (*current)++;
+    }
+    
+    int len = *current - start;
+    char* word = malloc(len + 1);
+    strncpy(word, start, len);
+    word[len] = '\0';
+    
+    return word;
+}
+
+//
+// Helper function to extract rest of line (for station names)
+//
+static char* extractRestOfLine(char* current) {
+    // Skip whitespace
+    while (*current == ' ' || *current == '\t') current++;
+    
+    // Remove newline if present
+    char* end = current + strlen(current) - 1;
+    if (*end == '\n') *end = '\0';
+    
+    char* result = malloc(strlen(current) + 1);
+    strcpy(result, current);
+    return result;
+}
+
+//
+// readStations()
+//
+// reads station data from file into dynamically allocated array
+// parses: StationID Capacity Latitude Longitude Name
+//
+struct Station* readStations(char* filename, int* count) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error: unable to open file \"%s\"\n", filename);
+        return NULL;
+    }
+    
+    int capacity = 10;
+    struct Station* stations = malloc(capacity * sizeof(struct Station));
+    *count = 0;
+    
+    char* line = NULL;
+    size_t len = 0;
+    
+    while (getline(&line, &len, file) != -1) {
+        if (*count >= capacity) {
+            stations = doubleStationArray(stations, &capacity);
+        }
+        
+        char* current = line;
+        
+        // Extract each field
+        stations[*count].stationID = extractWord(&current);
+        char* capacityStr = extractWord(&current);
+        char* latStr = extractWord(&current);
+        char* lonStr = extractWord(&current);
+        
+        if (capacityStr && latStr && lonStr) {
+            stations[*count].capacity = atoi(capacityStr);
+            stations[*count].latitude = atof(latStr);
+            stations[*count].longitude = atof(lonStr);
+            stations[*count].name = extractRestOfLine(current);
+            
+            (*count)++;
+        }
+        
+        free(capacityStr);
+        free(latStr);
+        free(lonStr);
+    }
+    
+    free(line);
+    fclose(file);
+    return stations;
+}
+
+//
+// readTrips()
+//
+// reads trip data from file into dynamically allocated array
+// parses: TripID BikeID StartStationID EndStationID Duration StartTime
+//
+struct Trip* readTrips(char* filename, int* count) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error: unable to open file \"%s\"\n", filename);
+        return NULL;
+    }
+    
+    int capacity = 10;
+    struct Trip* trips = malloc(capacity * sizeof(struct Trip));
+    *count = 0;
+    
+    char* line = NULL;
+    size_t len = 0;
+    
+    while (getline(&line, &len, file) != -1) {
+        if (*count >= capacity) {
+            trips = doubleTripArray(trips, &capacity);
+        }
+        
+        char* current = line;
+        
+        // Extract each field
+        trips[*count].tripID = extractWord(&current);
+        trips[*count].bikeID = extractWord(&current);
+        trips[*count].startStationID = extractWord(&current);
+        trips[*count].endStationID = extractWord(&current);
+        char* durationStr = extractWord(&current);
+        trips[*count].startTime = extractWord(&current);
+        
+        if (durationStr) {
+            trips[*count].duration = atoi(durationStr);
+            (*count)++;
+        }
+        
+        free(durationStr);
+    }
+    
+    free(line);
+    fclose(file);
+    return trips;
+}
+
+//
 // processCommands()
 //
 //
 // Main command that processes user inputted commands via a while loop.
 // Manages which helpers to use when and controls overall program flow
 //
-static void processCommands(struct Station* stations, int stationCount, struct Trip* trip, int tripCount){
+static void processCommands(struct Station* stations, int stationCount, struct Trip* trips, int tripCount){
     int commandCapacity = 10;
     char* command = malloc(commandCapacity * sizeof(char));
     
@@ -277,19 +419,3 @@ int main(){
     return 0;
 }
 
-
-//
-// file reading functions
-//
-
-//
-// readStations
-//
-
-
-
-//
-// readTrips
-//
-
-/////////////////////////
