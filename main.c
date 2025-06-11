@@ -360,6 +360,26 @@ static void printDurations(struct Trip* trips, int tripCount) {
     printf(" trips > 5 hrs: %d\n", counts[4]);
 }
 
+//
+// printStartingTimes
+//
+// outputs a histogram of trip starting times by hour (0-23)
+//
+static void printStartingTimes(struct Trip* trips, int tripCount) {
+    int hourCounts[24] = {0}; // Fixed-size array for 24 hours
+    
+    for (int i = 0; i < tripCount; i++) {
+        // Parse hour from startTime (format: "H:MM" or "HH:MM")
+        int hour = atoi(trips[i].startTime);
+        hourCounts[hour]++;
+    }
+    
+    // Print histogram for all 24 hours (0-23)
+    for (int i = 0; i < 24; i++) {
+        printf(" %d: %d\n", i, hourCounts[i]);
+    }
+}
+
 
 /////////////////////////////////////////////////////////
 
@@ -401,7 +421,7 @@ static void processCommands(struct Station* stations, int stationCount, struct T
             printDurations(trips, tripCount);
         }
         else if (strcmp(command, "starting") == 0) {
-            //printStartingTimes(trips, tripCount);
+            printStartingTimes(trips, tripCount);
         }
         else if (strcmp(command, "nearme") == 0) {
             //handleNearMe(stations, stationCount, trips, tripCount);
@@ -417,8 +437,6 @@ static void processCommands(struct Station* stations, int stationCount, struct T
     free(command);
 
 }
-
-
 
 
 //
