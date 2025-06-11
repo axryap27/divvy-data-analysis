@@ -17,9 +17,10 @@
 #include <string.h>
 #include "dist.h"
 
-
+//
 // station struct
-struct Station {
+//
+struct STATION {
     char* stationID;
     int capacity;
     double latitude;
@@ -27,9 +28,10 @@ struct Station {
     char* name;
 };
 
-
+//
 // trip struct
-struct Trip {
+//
+struct TRIP {
     char* tripID;
     char* bikeID;
     char* startStationID;
@@ -38,7 +40,13 @@ struct Trip {
     char* startTime;
 };
 
-
+//
+// structure to hold station and its distance for sorting for nearMe() function
+//
+struct STATION_DIST{
+    struct STATION station; 
+    double distance;
+};
 
 /////////////////////
 //
@@ -67,9 +75,9 @@ static char* doubleCharArray(char* array, int* capacity) {
 //
 // doubles array of Station structs, returning pointer to new larger array
 //
-static struct Station* doubleStationArray(struct Station* array, int* capacity) {
+static struct STATION* doubleStationArray(struct STATION* array, int* capacity) {
     *capacity *= 2;
-    return realloc(array, *capacity * sizeof(struct Station));
+    return realloc(array, *capacity * sizeof(struct STATION));
 }
 
 //
@@ -77,9 +85,9 @@ static struct Station* doubleStationArray(struct Station* array, int* capacity) 
 //
 // doubles array of Trip structs, returning pointer to new larger array
 //
-static struct Trip* doubleTripArray(struct Trip* array, int* capacity) {
+static struct TRIP* doubleTripArray(struct TRIP* array, int* capacity) {
     *capacity *= 2;
-    return realloc(array, *capacity * sizeof(struct Trip));
+    return realloc(array, *capacity * sizeof(struct TRIP));
 }
 
 //
@@ -88,7 +96,7 @@ static struct Trip* doubleTripArray(struct Trip* array, int* capacity) {
 // counts number of trips given a station ID and start/end station ID of a given trip
 // using a for loop and count variable which is returned at the end.
 //
-static int countTripsForStation(char* stationID, struct Trip* trips, int tripCount) {
+static int countTripsForStation(char* stationID, struct TRIP* trips, int tripCount) {
     int count = 0;
     for (int i = 0; i < tripCount; i++) {
         if (strcmp(trips[i].startStationID, stationID) == 0 || 
@@ -103,7 +111,7 @@ static int countTripsForStation(char* stationID, struct Trip* trips, int tripCou
 // printStats
 //
 // given a station, trip and their respective counts outputs the number 
-static void printStats(struct Station* stations, int stationCount, struct Trip* trips, int tripCount) {
+static void printStats(struct STATION* stations, int stationCount, struct TRIP* trips, int tripCount) {
     // Calculate total bike capacity across all stations
     int totalCapacity = 0;
     for (int i = 0; i < stationCount; i++) {
@@ -159,7 +167,7 @@ static char* readStringInput(const char* prompt) {
 // and each time freeing memory for each station struct
 // and then at the end frees the array data structure it self
 //
-static void freeStations(struct Station* stations, int count) {
+static void freeStations(struct STATION* stations, int count) {
     for (int i = 0; i < count; i++) {
         free(stations[i].stationID);
         free(stations[i].name);
@@ -175,7 +183,7 @@ static void freeStations(struct Station* stations, int count) {
 // and each time freeing memory for each trip struct
 // and then at the end frees the array data structure it self
 //
-static void freeTrips(struct Trip* trips, int count) {
+static void freeTrips(struct TRIP* trips, int count) {
     for (int i = 0; i < count; i++) {
         free(trips[i].tripID);
         free(trips[i].bikeID);
@@ -234,7 +242,7 @@ static char* extractRestOfLine(char* current) {
 // reads station data from file into dynamically allocated array
 // parses: StationID Capacity Latitude Longitude Name
 //
-struct Station* readStations(char* filename, int* count) {
+struct STATION* readStations(char* filename, int* count) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error: unable to open file \"%s\"\n", filename);
@@ -242,7 +250,7 @@ struct Station* readStations(char* filename, int* count) {
     }
     
     int capacity = 10;
-    struct Station* stations = malloc(capacity * sizeof(struct Station));
+    struct STATION* stations = malloc(capacity * sizeof(struct STATION));
     *count = 0;
     
     char* line = NULL;
@@ -286,7 +294,7 @@ struct Station* readStations(char* filename, int* count) {
 // reads trip data from file into dynamically allocated array
 // parses: TripID BikeID StartStationID EndStationID Duration StartTime
 //
-struct Trip* readTrips(char* filename, int* count) {
+struct TRIP* readTrips(char* filename, int* count) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error: unable to open file \"%s\"\n", filename);
@@ -294,7 +302,7 @@ struct Trip* readTrips(char* filename, int* count) {
     }
     
     int capacity = 10;
-    struct Trip* trips = malloc(capacity * sizeof(struct Trip));
+    struct TRIP* trips = malloc(capacity * sizeof(struct TRIP));
     *count = 0;
     
     char* line = NULL;
@@ -333,7 +341,7 @@ struct Trip* readTrips(char* filename, int* count) {
 //
 // categorizes trips by duration and prints counts
 //
-static void printDurations(struct Trip* trips, int tripCount) {
+static void printDurations(struct TRIP* trips, int tripCount) {
     int counts[5] = {0}; // Initialize all counts to 0
     
     for (int i = 0; i < tripCount; i++) {
@@ -365,7 +373,7 @@ static void printDurations(struct Trip* trips, int tripCount) {
 //
 // outputs a histogram of trip starting times by hour (0-23)
 //
-static void printStartingTimes(struct Trip* trips, int tripCount) {
+static void printStartingTimes(struct TRIP* trips, int tripCount) {
     int hourCounts[24] = {0}; // Fixed-size array for 24 hours
     
     for (int i = 0; i < tripCount; i++) {
@@ -381,6 +389,61 @@ static void printStartingTimes(struct Trip* trips, int tripCount) {
 }
 
 
+//
+// Comparison function for qsort to sort StationDistance by distance
+//
+static int compareStationsByDistance(const void* a, const void* b) {
+    struct STATION_DIST* stationA = (struct STATION_DIST*)a;
+    struct STATION_DIST* stationB = (struct STATION_DIST*)b;
+    
+    if (stationA->distance < stationB->distance) return -1;
+    if (stationA->distance > stationB->distance) return 1;
+    return 0;
+}
+
+//
+// nearMe()
+//
+// Finds all station within a specified distance and location inputted by user
+// 
+
+static void nearMe(struct STATION* stations, int stationCount, struct TRIP* trips, int tripCounts){
+    double lat, lon, maxDist;
+
+    //read parameters from user input
+    printf("Enter your latitude, longitude, and maximum distance: ");
+    scanf("%lf %lf %lf", &lat, &lon, &maxDist);
+
+    printf(" The following stations are within %.1f miles of (%.2f, %.2f):\n", maxDist, lat, lon);
+
+    int capacity = 10;
+    struct STATION_DIST* nearbyStations = malloc(capacity * sizeof(struct STATION_DIST));
+    int nearbyCount = 0;
+
+    // loop through stations and add a station if the distance is less than maxDist
+    for (int i = 0; i < stationCount; i++){
+        double dist = distBetween2Points(lat, lon, stations[i].latitude, stations[i].longitude);
+        if (dist <= maxDist){
+            if (nearbyCount >= capacity){
+                capacity *= 2;
+                nearbyStations = realloc(nearbyStations, capacity * sizeof(struct STATION_DIST));
+            }
+            nearbyStations[nearbyCount].station = stations[i];
+            nearbyStations[nearbyCount].distance = dist;
+            nearbyCount++;
+        }
+    }
+
+    qsort(nearbyStations, nearbyCount, sizeof(struct STATION_DIST), compareStationsByDistance);
+
+    //output results
+    if (nearbyCount == 0){
+        printf(" none found]\n");
+    }
+
+}
+
+
 /////////////////////////////////////////////////////////
 
 
@@ -391,7 +454,7 @@ static void printStartingTimes(struct Trip* trips, int tripCount) {
 // Main command that processes user inputted commands via a while loop.
 // Manages which helpers to use when and controls overall program flow
 //
-static void processCommands(struct Station* stations, int stationCount, struct Trip* trips, int tripCount){
+static void processCommands(struct STATION* stations, int stationCount, struct TRIP* trips, int tripCount){
     int commandCapacity = 10;
     char* command = malloc(commandCapacity * sizeof(char));
     
@@ -449,14 +512,14 @@ int main(){
     char* tripsFile = readStringInput("Please enter name of bike trips file> ");
     
     int stationCount = 0, tripCount = 0;
-    struct Station* stations = readStations(stationsFile, &stationCount);
+    struct STATION* stations = readStations(stationsFile, &stationCount);
     if (stations == NULL) {
         free(stationsFile);
         free(tripsFile);
         return 1;
     }
     
-    struct Trip* trips = readTrips(tripsFile, &tripCount);
+    struct TRIP* trips = readTrips(tripsFile, &tripCount);
     if (trips == NULL) {
         freeStations(stations, stationCount);
         free(stationsFile);
