@@ -436,11 +436,67 @@ static void nearMe(struct STATION* stations, int stationCount, struct TRIP* trip
 
     qsort(nearbyStations, nearbyCount, sizeof(struct STATION_DIST), compareStationsByDistance);
 
-    //output results
+    //output results - print none found if there are no stations within maxDist
     if (nearbyCount == 0){
         printf(" none found]\n");
     }
+    else{
+        for (int i=0; i<nearbyCount; i++){
+            printf(" station %s (%s): %f miles\n",
+                    nearbyStations[i].station.stationID,
+                    nearbyStations[i].station.name,
+                    nearbyStations[i].distance);
+        }
+    }
 
+    free(nearbyStations);
+}
+
+//
+// compareStationsByName()
+//
+// helper function that defines the alphabetical sorting for an array of stations 
+//
+static int compareStationsByName(const void* a, const void* b){
+    struct STATION* stationA = (struct STATION*)a;
+    struct STATION* stationB = (struct STATION*)b;
+    return strcmp(stationA->name, stationB->name);
+}
+
+    
+//
+// printAllStations()
+//
+// Traverses through an array of station structs 
+// and sorts stations alphabetically by name and then counts trips
+// for each station using countTripsForStation() function. 
+// Then outputs every station in specified format.
+//
+static void printAllStations(struct STATION* stations, int stationCount, struct TRIP* trips, int tripCount){
+    //copy stations array since this one will be modified
+    struct STATION* sortedStations = malloc(stationCount * sizeof(struct STATION));
+
+    // copy stations to sorted array
+    for (int i = 0; i < stationCount; i++){
+        sortedStations[i] = stations[i];
+    }
+
+    // use sorting helper to sort copied array
+    qsort(sortedStations, stationCount, sizeof(struct STATION), compareStationsByName);
+
+    // output alphabetically sorted array
+    for (int i = 0; i < stationCount; i++) {
+        int tripCount = countTripsForStation(sortedStations[i].stationID, trips, tripCount);
+        
+        printf(" %s (%s) @ (%.4f, %.4f), %d capacity, %d trips\n",
+               sortedStations[i].name,
+               sortedStations[i].stationID,
+               sortedStations[i].latitude,
+               sortedStations[i].longitude,
+               sortedStations[i].capacity,
+               tripCount);
+    }
+    free(sortedStations);
 }
 
 
@@ -487,10 +543,10 @@ static void processCommands(struct STATION* stations, int stationCount, struct T
             printStartingTimes(trips, tripCount);
         }
         else if (strcmp(command, "nearme") == 0) {
-            //handleNearMe(stations, stationCount, trips, tripCount);
+            nearMe(stations, stationCount, trips, tripCount);
         }
         else if (strcmp(command, "stations") == 0) {
-            //printAllStations(stations, stationCount, trips, tripCount);
+            printAllStations(stations, stationCount, trips, tripCount);
         }
         else if (strcmp(command, "find") == 0) {
             //findStations(stations, stationCount, trips, tripCount);
