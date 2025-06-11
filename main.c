@@ -411,7 +411,6 @@ static void nearMe(struct STATION* stations, int stationCount, struct TRIP* trip
     double lat, lon, maxDist;
 
     //read parameters from user input
-    printf("Enter your latitude, longitude, and maximum distance: ");
     scanf("%lf %lf %lf", &lat, &lon, &maxDist);
 
     printf(" The following stations are within %.1f miles of (%.2f, %.2f):\n", maxDist, lat, lon);
@@ -438,7 +437,7 @@ static void nearMe(struct STATION* stations, int stationCount, struct TRIP* trip
 
     //output results - print none found if there are no stations within maxDist
     if (nearbyCount == 0){
-        printf(" none found]\n");
+        printf(" none found\n");
     }
     else{
         for (int i=0; i<nearbyCount; i++){
@@ -486,7 +485,7 @@ static void printAllStations(struct STATION* stations, int stationCount, struct 
 
     // output alphabetically sorted array
     for (int i = 0; i < stationCount; i++) {
-        int tripCount = countTripsForStation(sortedStations[i].stationID, trips, tripCount);
+        int stationTripCount = countTripsForStation(sortedStations[i].stationID, trips, tripCount);
         
         printf(" %s (%s) @ (%.4f, %.4f), %d capacity, %d trips\n",
                sortedStations[i].name,
@@ -497,6 +496,58 @@ static void printAllStations(struct STATION* stations, int stationCount, struct 
                tripCount);
     }
     free(sortedStations);
+}
+
+
+//
+// findStations()
+//
+// finds stations given a user inputted search - case sensitive but finds
+// any station which contains the search term in its name. Prints results
+// alphabetically.
+//
+static void findStations(struct STATION* stations, int stationCount, struct TRIP* trips, int tripCount) {
+    char* searchTerm = readStringInput("");
+    
+    // Create array to store matching stations for modification
+    int capacity = 10;
+    struct STATION* matchingStations = malloc(capacity * sizeof(struct STATION));
+    int matchingCount = 0;
+    
+    // Find stations whose names contain the search term
+    for (int i = 0; i < stationCount; i++) {
+        if (strstr(stations[i].name, searchTerm) != NULL) {
+            // Double array if needed
+            if (matchingCount >= capacity) {
+                capacity *= 2;
+                matchingStations = realloc(matchingStations, capacity * sizeof(struct STATION));
+            }
+            
+            matchingStations[matchingCount] = stations[i];
+            matchingCount++;
+        }
+    }
+    
+    // Sort matching stations alphabetically by name
+    qsort(matchingStations, matchingCount, sizeof(struct STATION), compareStationsByName);
+    
+    // Print results or "none found"
+    if (matchingCount == 0) {
+        printf(" none found\n");
+    } else {
+        for (int i = 0; i < matchingCount; i++) {
+            int stationTripCount = countTripsForStation(matchingStations[i].stationID, trips, tripCount);
+            printf(" %s (%s) @ (%.4f, %.4f), %d capacity, %d trips\n",
+                   matchingStations[i].name,
+                   matchingStations[i].stationID,
+                   matchingStations[i].latitude,
+                   matchingStations[i].longitude,
+                   matchingStations[i].capacity,
+                   stationTripCount);
+        }
+    }
+    free(searchTerm);
+    free(matchingStations);
 }
 
 
@@ -549,7 +600,7 @@ static void processCommands(struct STATION* stations, int stationCount, struct T
             printAllStations(stations, stationCount, trips, tripCount);
         }
         else if (strcmp(command, "find") == 0) {
-            //findStations(stations, stationCount, trips, tripCount);
+            findStations(stations, stationCount, trips, tripCount);
         }
     }
     
