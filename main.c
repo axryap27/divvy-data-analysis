@@ -587,6 +587,8 @@ static void processCommands(struct STATION* stations, int stationCount, struct T
         
         // Process commands
         if (strcmp(command, "#") == 0) {
+            printf("\n");
+            printf("** Done **\n");
             break;
         }
         else if (strcmp(command, "stats") == 0) {
