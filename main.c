@@ -414,7 +414,7 @@ static void nearMe(struct STATION* stations, int stationCount, struct TRIP* trip
     // printf("Enter your latitude, longitude, and maximum distance: ");
     // scanf("%lf %lf %lf", &lat, &lon, &maxDist);
 
-    printf("  The following stations are within %.1f miles of (%.2f, %.2f):\n", maxDist, lat, lon);
+    printf("  The following stations are within %g miles of (%g, %g):\n", maxDist, lat, lon);
 
     int capacity = 10;
     struct STATION_DIST* nearbyStations = malloc(capacity * sizeof(struct STATION_DIST));
@@ -442,7 +442,7 @@ static void nearMe(struct STATION* stations, int stationCount, struct TRIP* trip
     }
     else{
         for (int i=0; i<nearbyCount; i++){
-            printf("  station %s (%s): %f miles\n",
+            printf("  station %s (%s): %g miles\n",
                     nearbyStations[i].station.stationID,
                     nearbyStations[i].station.name,
                     nearbyStations[i].distance);
@@ -488,13 +488,13 @@ static void printAllStations(struct STATION* stations, int stationCount, struct 
     for (int i = 0; i < stationCount; i++) {
         int stationTripCount = countTripsForStation(sortedStations[i].stationID, trips, tripCount);
         
-        printf("  %s (%s) @ (%.4f, %.4f), %d capacity, %d trips\n",
+        printf("%s (%s) @ (%g, %g), %d capacity, %d trips\n",
                sortedStations[i].name,
                sortedStations[i].stationID,
                sortedStations[i].latitude,
                sortedStations[i].longitude,
                sortedStations[i].capacity,
-               tripCount);
+               stationTripCount);
     }
     free(sortedStations);
 }
@@ -540,7 +540,7 @@ static void findStations(struct STATION* stations, int stationCount, struct TRIP
         for (int i = 0; i < matchingCount; i++) {
             int stationTripCount = countTripsForStation(matchingStations[i].stationID, trips, tripCount);
             
-            printf("  %s (%s) @ (%.4f, %.4f), %d capacity, %d trips\n",
+            printf("%s (%s) @ (%g, %g), %d capacity, %d trips\n",
                    matchingStations[i].name,
                    matchingStations[i].stationID,
                    matchingStations[i].latitude,
@@ -612,6 +612,9 @@ static void processCommands(struct STATION* stations, int stationCount, struct T
         else if (strncmp(command, "find ", 5) == 0) {  // Check if line starts with "find "
             char* searchTerm = command + 5;  // Point to the part after "find "
             findStations(stations, stationCount, trips, tripCount, searchTerm);
+        }
+        else{
+            printf("** Invalid command, try again...\n\n");
         }
     }
     
