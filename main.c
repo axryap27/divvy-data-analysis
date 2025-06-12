@@ -119,9 +119,9 @@ static void printStats(struct STATION* stations, int stationCount, struct TRIP* 
     }
     
     // Print the three required statistics
-    printf(" stations: %d\n", stationCount);
-    printf(" trips: %d\n", tripCount);
-    printf(" total bike capacity: %d\n", totalCapacity);
+    printf("  stations: %d\n", stationCount);
+    printf("  trips: %d\n", tripCount);
+    printf("  total bike capacity: %d\n", totalCapacity);
 }
 
 
@@ -361,11 +361,11 @@ static void printDurations(struct TRIP* trips, int tripCount) {
     }
     
     // Print results in the exact format required
-    printf(" trips <= 30 mins: %d\n", counts[0]);
-    printf(" trips 30..60 mins: %d\n", counts[1]);
-    printf(" trips 1-2 hrs: %d\n", counts[2]);
-    printf(" trips 2-5 hrs: %d\n", counts[3]);
-    printf(" trips > 5 hrs: %d\n", counts[4]);
+    printf("  trips <= 30 mins: %d\n", counts[0]);
+    printf("  trips 30..60 mins: %d\n", counts[1]);
+    printf("  trips 1-2 hrs: %d\n", counts[2]);
+    printf("  trips 2-5 hrs: %d\n", counts[3]);
+    printf("  trips > 5 hrs: %d\n", counts[4]);
 }
 
 //
@@ -384,7 +384,7 @@ static void printStartingTimes(struct TRIP* trips, int tripCount) {
     
     // Print histogram for all 24 hours (0-23)
     for (int i = 0; i < 24; i++) {
-        printf(" %d: %d\n", i, hourCounts[i]);
+        printf("  %d: %d\n", i, hourCounts[i]);
     }
 }
 
@@ -401,19 +401,20 @@ static int compareStationsByDistance(const void* a, const void* b) {
     return 0;
 }
 
+
 //
 // nearMe()
 //
 // Finds all station within a specified distance and location inputted by user
 // 
+static void nearMe(struct STATION* stations, int stationCount, struct TRIP* trips, int tripCounts, 
+                   double lat, double lon, double maxDist){
+    
+    // Remove the input reading lines:
+    // printf("Enter your latitude, longitude, and maximum distance: ");
+    // scanf("%lf %lf %lf", &lat, &lon, &maxDist);
 
-static void nearMe(struct STATION* stations, int stationCount, struct TRIP* trips, int tripCounts){
-    double lat, lon, maxDist;
-
-    //read parameters from user input
-    scanf("%lf %lf %lf", &lat, &lon, &maxDist);
-
-    printf(" The following stations are within %.1f miles of (%.2f, %.2f):\n", maxDist, lat, lon);
+    printf("  The following stations are within %.1f miles of (%.2f, %.2f):\n", maxDist, lat, lon);
 
     int capacity = 10;
     struct STATION_DIST* nearbyStations = malloc(capacity * sizeof(struct STATION_DIST));
@@ -437,19 +438,19 @@ static void nearMe(struct STATION* stations, int stationCount, struct TRIP* trip
 
     //output results - print none found if there are no stations within maxDist
     if (nearbyCount == 0){
-        printf(" none found\n");
+        printf("  none found\n");  // Fixed the typo: removed the ]
     }
     else{
         for (int i=0; i<nearbyCount; i++){
-            printf(" station %s (%s): %f miles\n",
+            printf("  station %s (%s): %f miles\n",
                     nearbyStations[i].station.stationID,
                     nearbyStations[i].station.name,
                     nearbyStations[i].distance);
         }
     }
-
     free(nearbyStations);
 }
+
 
 //
 // compareStationsByName()
@@ -487,7 +488,7 @@ static void printAllStations(struct STATION* stations, int stationCount, struct 
     for (int i = 0; i < stationCount; i++) {
         int stationTripCount = countTripsForStation(sortedStations[i].stationID, trips, tripCount);
         
-        printf(" %s (%s) @ (%.4f, %.4f), %d capacity, %d trips\n",
+        printf("  %s (%s) @ (%.4f, %.4f), %d capacity, %d trips\n",
                sortedStations[i].name,
                sortedStations[i].stationID,
                sortedStations[i].latitude,
@@ -506,10 +507,11 @@ static void printAllStations(struct STATION* stations, int stationCount, struct 
 // any station which contains the search term in its name. Prints results
 // alphabetically.
 //
-static void findStations(struct STATION* stations, int stationCount, struct TRIP* trips, int tripCount) {
-    char* searchTerm = readStringInput("");
+static void findStations(struct STATION* stations, int stationCount, struct TRIP* trips, int tripCount, char* searchTerm) {
+    // Remove this line since searchTerm is now a parameter:
+    // char* searchTerm = readStringInput("");
     
-    // Create array to store matching stations for modification
+    // Create array to store matching stations
     int capacity = 10;
     struct STATION* matchingStations = malloc(capacity * sizeof(struct STATION));
     int matchingCount = 0;
@@ -533,11 +535,12 @@ static void findStations(struct STATION* stations, int stationCount, struct TRIP
     
     // Print results or "none found"
     if (matchingCount == 0) {
-        printf(" none found\n");
+        printf("  none found\n");
     } else {
         for (int i = 0; i < matchingCount; i++) {
             int stationTripCount = countTripsForStation(matchingStations[i].stationID, trips, tripCount);
-            printf(" %s (%s) @ (%.4f, %.4f), %d capacity, %d trips\n",
+            
+            printf("  %s (%s) @ (%.4f, %.4f), %d capacity, %d trips\n",
                    matchingStations[i].name,
                    matchingStations[i].stationID,
                    matchingStations[i].latitude,
@@ -546,7 +549,9 @@ static void findStations(struct STATION* stations, int stationCount, struct TRIP
                    stationTripCount);
         }
     }
-    free(searchTerm);
+    
+    // Remove this line since we don't own searchTerm anymore:
+    // free(searchTerm);
     free(matchingStations);
 }
 
@@ -566,8 +571,8 @@ static void processCommands(struct STATION* stations, int stationCount, struct T
     char* command = malloc(commandCapacity * sizeof(char));
     
     while (1) {
-        // Read command dynamically
-        printf("Enter command (# to stop)> ");
+        // Read command dynamically (your original way)
+        printf("Enter command (# to stop)>\n");
         int length = 0;
         int c;
         
@@ -593,19 +598,22 @@ static void processCommands(struct STATION* stations, int stationCount, struct T
         else if (strcmp(command, "starting") == 0) {
             printStartingTimes(trips, tripCount);
         }
-        else if (strcmp(command, "nearme") == 0) {
-            nearMe(stations, stationCount, trips, tripCount);
+        else if (strncmp(command, "nearme ", 7) == 0) {  // Check if line starts with "nearme "
+            double lat, lon, maxDist;
+            // Parse the parameters from the command string
+            sscanf(command + 7, "%lf %lf %lf", &lat, &lon, &maxDist);
+            nearMe(stations, stationCount, trips, tripCount, lat, lon, maxDist);
         }
         else if (strcmp(command, "stations") == 0) {
             printAllStations(stations, stationCount, trips, tripCount);
         }
-        else if (strcmp(command, "find") == 0) {
-            findStations(stations, stationCount, trips, tripCount);
+        else if (strncmp(command, "find ", 5) == 0) {  // Check if line starts with "find "
+            char* searchTerm = command + 5;  // Point to the part after "find "
+            findStations(stations, stationCount, trips, tripCount, searchTerm);
         }
     }
     
     free(command);
-
 }
 
 
@@ -615,8 +623,11 @@ static void processCommands(struct STATION* stations, int stationCount, struct T
 // handles file input and program execution between all helpers
 //
 int main(){
-    char* stationsFile = readStringInput("Please enter name of stations file> ");
-    char* tripsFile = readStringInput("Please enter name of bike trips file> ");
+    printf("** Divvy Bike Data Analysis **\n\n");
+    char* stationsFile = readStringInput("Please enter name of stations file>\n"); 
+    char* tripsFile = readStringInput("Please enter name of bike trips file>\n");   
+    
+    printf("\n");
     
     int stationCount = 0, tripCount = 0;
     struct STATION* stations = readStations(stationsFile, &stationCount);
